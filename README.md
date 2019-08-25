@@ -4,8 +4,6 @@ Godot Camera Plugin (For 3.2 and and above)
 =======
 
 A plugin for displaying native camera preview in @godotengine (currently Android only)
-![Screenshot1](https://raw.githubusercontent.com/funabab/godot-camera-plugin-demo/master/images/Screenshot1.png)
-![Screenshot2](https://raw.githubusercontent.com/funabab/godot-camera-plugin-demo/master/images/Screenshot2.png)
 
 ## How to use:
 Make sure you are running godotengine version 3.2 or above and that your project have been setup for exporting with [custom Android template](https://docs.godotengine.org/en/latest/getting_started/workflow/export/android_custom_build.html).
@@ -77,6 +75,9 @@ It was implemented using custom view drawn over godotengine game view, which mea
 
 * **picture_taken** [*error_code*: (int), *image_texture*: (ImageTexture), *extras*: Dictionary] - This is emitted whenever ***take_picture([*(int)* *minimum_number_of_face*])*** method is called and image capture process is completed. Note that this signal will be emitted even if the image capture failed. It is advicable to check the return *error_code* against the ***ERROR*** enum. *extras* is a Dictionary containing extra information e.g "faces" if face_recognition is enabled.
 
+## Screenshots
+![Screenshot1](https://raw.githubusercontent.com/funabab/godot-camera-plugin-demo/master/images/Screenshot1.png)
+![Screenshot2](https://raw.githubusercontent.com/funabab/godot-camera-plugin-demo/master/images/Screenshot2.png)
 
 ## SHA u EAT... SHA i EAT?
 ### Donations if you mind supporting:
