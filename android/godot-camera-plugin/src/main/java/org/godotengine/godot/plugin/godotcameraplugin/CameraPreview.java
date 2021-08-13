@@ -352,7 +352,9 @@ public abstract class CameraPreview extends FrameLayout implements TextureView.S
 
     protected final void startCameraPreview() {
         if (!isActive()) return;
-        startCameraPreview(mTextureView.getSurfaceTexture());
+		SurfaceTexture surfaceTexture = mTextureView.getSurfaceTexture();
+		if (surfaceTexture != null)
+			startCameraPreview(surfaceTexture);
     }
 
     protected final void startCameraPreview(SurfaceTexture surfaceTexture) {
