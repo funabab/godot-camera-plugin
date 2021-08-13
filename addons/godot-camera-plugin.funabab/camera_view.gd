@@ -29,6 +29,7 @@ export(int, "None", "Mono", "Negative", "Solarize", "Sepia") var color_effect :=
 
 var cameraViewBridge
 var is_initialized : bool = false
+var is_ready : bool = false
 var camera_permission_granted = false
 
 var camera_icon = load("res://addons/godot-camera-plugin.funabab/icon_camera.png");
@@ -71,6 +72,25 @@ func take_picture(minimum_number_of_face = 0):
 	cameraViewBridge.take_picture(minimum_number_of_face);
 	pass
 
+func _ready():
+	get_tree().connect("on_request_permissions_result", self, "_on_permission_result");
+	pass
+
+func _on_permission_result(permission, granted):
+	print("permission '%s' result: %s" % [permission, granted]);
+	if (permission.ends_with("CAMERA")):
+		camera_permission_granted = granted;
+		if !is_initialized && is_ready && camera_permission_granted:
+			_initialize_camera();
+	pass
+
+func _initialize_camera():
+	print("initialize camera");
+	var CameraViewNativeBridge = preload("camera_view_native_bridge.gd");
+	cameraViewBridge = CameraViewNativeBridge.initialize(self);
+	is_initialized = true;
+	pass
+
 func _draw():
 	if !draw_camera_splash: return;
 
@@ -93,24 +113,14 @@ func _notification(what):
 
 	if what == NOTIFICATION_ENTER_TREE:
 		if OS.get_name() == "Android":
+			print("requesting camera permission...");
 			camera_permission_granted = OS.request_permission("CAMERA");
-			if camera_permission_granted == false:
-				# Camera will proberly not start due to permission not granted
-	
-				# give users some time to grant permission
-				yield(get_tree().create_timer(2), "timeout");
-				prints("Godot: restart?");
-				get_tree().reload_current_scene(); # lets reload and try again
 	elif what == NOTIFICATION_RESIZED:
+		is_ready = true;
 		if !is_initialized && camera_permission_granted:
-#			yield(get_tree(), "idle_frame");
-			var CameraViewNativeBridge = preload("camera_view_native_bridge.gd");
-			cameraViewBridge = CameraViewNativeBridge.initialize(self);
-			is_initialized = true;
-		else:
-			if cameraViewBridge != null:
-				cameraViewBridge.resize_view(get_global_rect());
-
+			_initialize_camera();
+		elif cameraViewBridge != null:
+			cameraViewBridge.resize_view(get_global_rect());
 		update();
 	elif what == NOTIFICATION_VISIBILITY_CHANGED:
 		if cameraViewBridge != null:
