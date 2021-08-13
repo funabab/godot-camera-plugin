@@ -1,4 +1,4 @@
-package org.godotengine.godot.funabab.camera;
+package org.godotengine.godot.plugin.godotcameraplugin;
 
 import android.annotation.SuppressLint;
 import android.content.Context;

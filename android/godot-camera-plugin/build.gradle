@@ -1,0 +1,29 @@
+plugins {
+    id 'com.android.library'
+}
+
+ext.pluginVersionCode = 1
+ext.pluginVersionName = "1.0.0"
+
+android {
+    compileSdkVersion 29
+    buildToolsVersion "29.0.3"
+
+    defaultConfig {
+        minSdkVersion 18
+        targetSdkVersion 29 
+        versionCode pluginVersionCode
+        versionName pluginVersionName
+    }
+
+    libraryVariants.all { variant ->
+        variant.outputs.all { output ->
+            output.outputFileName = "FunababCameraPlugin.$pluginVersionName.${variant.name}.aar"
+        }
+    }
+}
+
+dependencies {
+    implementation "androidx.legacy:legacy-support-v4:1.0.0"
+    compileOnly fileTree(dir: 'libs', include: ['godot-lib*.aar'])
+}

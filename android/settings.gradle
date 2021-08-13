@@ -1,0 +1,2 @@
+include ':godot-camera-plugin'
+rootProject.name = "Godot Camera Plugin"

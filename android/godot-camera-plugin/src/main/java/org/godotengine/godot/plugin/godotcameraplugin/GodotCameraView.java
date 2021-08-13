@@ -1,4 +1,4 @@
-package org.godotengine.godot.funabab.camera;
+package org.godotengine.godot.plugin.godotcameraplugin;
 
 import android.content.Context;
 import android.graphics.Color;
