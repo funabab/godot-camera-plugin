@@ -29,7 +29,6 @@ export(int, "None", "Mono", "Negative", "Solarize", "Sepia") var color_effect :=
 
 var cameraViewBridge
 var is_initialized : bool = false
-var is_ready : bool = false
 var camera_permission_granted = false
 
 var camera_icon = load("res://addons/godot-camera-plugin.funabab/icon_camera.png");
@@ -80,7 +79,7 @@ func _on_permission_result(permission, granted):
 	print("permission '%s' result: %s" % [permission, granted]);
 	if (permission.ends_with("CAMERA")):
 		camera_permission_granted = granted;
-		if !is_initialized && is_ready && camera_permission_granted:
+		if !is_initialized && camera_permission_granted:
 			_initialize_camera();
 	pass
 
@@ -95,13 +94,15 @@ func _draw():
 	if !draw_camera_splash: return;
 
 	var rect = get_rect();
+	rect.position = Vector2.ZERO;
+	
 	var icon_size = rect.size.x * .3;
 	var size = Vector2(icon_size / camera_icon.get_width(),
 		icon_size / camera_icon.get_width());
 	
 	draw_rect(rect, COLOR_BG);
 	draw_set_transform((rect.size - (size * camera_icon.get_width())) / 2, 0, size);
-	draw_texture(camera_icon, Vector2(0, 0),
+	draw_texture(camera_icon, Vector2.ZERO,
 		Color.red if is_initialized else Color.white);
 	pass
 
@@ -116,7 +117,6 @@ func _notification(what):
 			print("requesting camera permission...");
 			camera_permission_granted = OS.request_permission("CAMERA");
 	elif what == NOTIFICATION_RESIZED:
-		is_ready = true;
 		if !is_initialized && camera_permission_granted:
 			_initialize_camera();
 		elif cameraViewBridge != null:

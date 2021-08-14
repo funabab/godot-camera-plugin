@@ -39,12 +39,18 @@ public abstract class CameraPreview extends FrameLayout implements TextureView.S
     private boolean mPreviewFaceDetection;
     private int mOriginalCameraOrientation = 0;
     private float mOutputImageResolution = 1f;
+	
+	private float mViewScaleX = 1f;
+	private float mViewScaleY = 1f;
 
     @SuppressLint("ClickableViewAccessibility")
-    public CameraPreview(Context context, Camera camera, Camera.CameraInfo info) {
+    public CameraPreview(Context context, Camera camera, Camera.CameraInfo info, final float scaleX, final float scaleY) {
         super(context);
         setClipChildren(true);
         mDeviceDisplay = ((WindowManager)context.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+		
+		mViewScaleX = scaleX;
+		mViewScaleY = scaleY;
 
         mRoot = new FrameLayout(context);
         mRoot.setLayoutParams(new ViewGroup.LayoutParams(0, 0));
@@ -232,6 +238,9 @@ public abstract class CameraPreview extends FrameLayout implements TextureView.S
             layoutParams.width = (int)(deviceScreenSize.y * ((float)layoutParams.width/layoutParams.height));
             layoutParams.height = deviceScreenSize.y;
         }
+		
+		layoutParams.width *= mViewScaleX;
+		layoutParams.height *= mViewScaleY;
 
         mRoot.setLayoutParams(layoutParams);
         setCameraParameters();

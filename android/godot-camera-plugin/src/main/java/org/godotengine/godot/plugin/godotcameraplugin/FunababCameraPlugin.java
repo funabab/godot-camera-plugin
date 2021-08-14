@@ -40,7 +40,7 @@ public class FunababCameraPlugin extends GodotPlugin {
 
     private GodotCameraView mGodotCameraView;
 
-	public boolean initializeView(final int instanceId, final boolean cameraFacingBack, final String parameters, final int x, final int y, final int w, final int h, final boolean visibility) {
+	public boolean initializeView(final int instanceId, final boolean cameraFacingBack, final String parameters, final int x, final int y, final int w, final int h, final float scaleX, final float scaleY, final boolean visibility) {
 	    if (mInstanceId != null) {
             Log.d(TAG, "initializeView: can only instantiate one view at a time!");
             return false;
@@ -55,7 +55,7 @@ public class FunababCameraPlugin extends GodotPlugin {
                 try {
                     godotCameraView = GodotCameraView.initializeView(mContext, ParameterSerializer.unSerialize(parameters),
                             cameraFacingBack ? Camera.CameraInfo.CAMERA_FACING_BACK : Camera.CameraInfo.CAMERA_FACING_FRONT,
-                                new Rect(x, y, x + w, y + h), visibility);
+                                new Rect(x, y, x + w, y + h), scaleX, scaleY, visibility);
                 } catch (Exception e) {
                     Log.e(TAG, "failed to create camera preview: " + e.getMessage());
                     return;

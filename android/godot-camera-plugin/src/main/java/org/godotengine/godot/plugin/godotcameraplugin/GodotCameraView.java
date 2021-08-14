@@ -35,8 +35,8 @@ public class GodotCameraView extends CameraPreview {
 
     private final HashMap<String, Object> mCameraViewParameters = new HashMap<>();
 
-    public GodotCameraView(Context context, Camera camera, Camera.CameraInfo cameraInfo, Rect rect) {
-        super(context, camera, cameraInfo);
+    public GodotCameraView(Context context, Camera camera, Camera.CameraInfo cameraInfo, Rect rect, final float scaleX, final float scaleY) {
+        super(context, camera, cameraInfo, scaleX, scaleY);
         setX((float)rect.left);
         setY((float)rect.top);
         setLayoutParams(new ViewGroup.LayoutParams(rect.width(), rect.height()));
@@ -53,10 +53,10 @@ public class GodotCameraView extends CameraPreview {
         onPreviewRectChanged();
     }
 
-    public static GodotCameraView initializeView(Context context, HashMap<String, Object> parameters, int cameraFacing, Rect rect, boolean visible) throws Exception {
+    public static GodotCameraView initializeView(Context context, HashMap<String, Object> parameters, int cameraFacing, Rect rect, final float scaleX, final float scaleY, boolean visible) throws Exception {
         final int cameraFacingId = getFacingCameraId(cameraFacing);
         final Camera camera = Camera.open(cameraFacingId);
-        final GodotCameraView godotCameraView = new GodotCameraView(context, camera, getCameraInfo(cameraFacingId), rect);
+        final GodotCameraView godotCameraView = new GodotCameraView(context, camera, getCameraInfo(cameraFacingId), rect, scaleX, scaleY);
         godotCameraView.setVisibility(visible ? View.VISIBLE : View.INVISIBLE);
         godotCameraView.setViewCameraParameters(parameters);
         return godotCameraView;
