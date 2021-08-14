@@ -1,0 +1,11 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="org.godotengine.godot.plugin.godotcameraplugin">
+
+    <application>
+
+        <meta-data
+            android:name="org.godotengine.plugin.v1.FunababCameraPlugin"
+            android:value="org.godotengine.godot.plugin.godotcameraplugin.FunababCameraPlugin" />
+
+    </application>
+</manifest>

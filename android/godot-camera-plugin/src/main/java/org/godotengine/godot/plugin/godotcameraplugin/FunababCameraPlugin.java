@@ -1,10 +1,12 @@
-package org.godotengine.godot.funabab.camera;
+package org.godotengine.godot.plugin.godotcameraplugin;
 
 import android.app.Activity;
 import android.content.Context;
 
 import org.godotengine.godot.Godot;
 import org.godotengine.godot.GodotLib;
+import org.godotengine.godot.plugin.GodotPlugin;
+import org.godotengine.godot.plugin.SignalInfo;
 
 import android.graphics.Bitmap;
 import android.graphics.Rect;
@@ -12,17 +14,23 @@ import android.hardware.Camera;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
+
+import androidx.annotation.NonNull;
+import androidx.collection.ArraySet;
 
 import java.io.ByteArrayOutputStream;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
-public class FunababCameraPlugin extends Godot.SingletonBase {
+public class FunababCameraPlugin extends GodotPlugin {
 
-    private Godot mActivity;
+    private Godot mGodot;
     private Context mContext;
     private Integer mInstanceId = null;
-    private ViewGroup mRoot;
+    private FrameLayout mLayout = null;
 
     public static final String TAG = FunababCameraPlugin.class.getSimpleName();
     private static final int ERROR_CAMERA_NONE = 0;
@@ -32,30 +40,29 @@ public class FunababCameraPlugin extends Godot.SingletonBase {
 
     private GodotCameraView mGodotCameraView;
 
-	public boolean initializeView(final int instanceId, final boolean cameraFacingBack, final String parameters, final int x, final int y, final int w, final int h, final boolean visibility) {
+	public boolean initializeView(final int instanceId, final boolean cameraFacingBack, final String parameters, final int x, final int y, final int w, final int h, final float scaleX, final float scaleY, final boolean visibility) {
 	    if (mInstanceId != null) {
             Log.d(TAG, "initializeView: can only instantiate one view at a time!");
             return false;
         }
 
 	    mInstanceId = instanceId;
-	    mActivity.runOnUiThread(new Runnable() {
+	    mGodot.runOnUiThread(new Runnable() {
             @Override
             public void run() {
 
                 GodotCameraView godotCameraView;
                 try {
-                    godotCameraView = GodotCameraView.initializeView(mActivity, ParameterSerializer.unSerialize(parameters),
+                    godotCameraView = GodotCameraView.initializeView(mContext, ParameterSerializer.unSerialize(parameters),
                             cameraFacingBack ? Camera.CameraInfo.CAMERA_FACING_BACK : Camera.CameraInfo.CAMERA_FACING_FRONT,
-                                new Rect(x, y, x + w, y + h), visibility);
+                                new Rect(x, y, x + w, y + h), scaleX, scaleY, visibility);
                 } catch (Exception e) {
                     Log.e(TAG, "failed to create camera preview: " + e.getMessage());
                     return;
                 }
 
                 mGodotCameraView = godotCameraView;
-                mRoot = (ViewGroup) mActivity.layout.getParent();
-                mRoot.addView(mGodotCameraView);
+                mLayout.addView(mGodotCameraView);
 
                 GodotLib.calldeferred(instanceId, "_set_camera_features_", new Object[]{
                         ParameterSerializer.serialize(mGodotCameraView.getCameraFeatures())
@@ -65,12 +72,18 @@ public class FunababCameraPlugin extends Godot.SingletonBase {
 	    return true;
     }
 
+    @Override
+    public View onMainCreate(Activity activity) {
+	    mLayout = new FrameLayout(activity);
+	    return mLayout;
+    }
+
     public void resizeView(int instanceId, final int x, final int y, final int w, final int h) {
 	    if (!sanityCheck(instanceId))
 	        return;
 
 	    if (mGodotCameraView != null) {
-            mActivity.runOnUiThread(new Runnable() {
+            mGodot.runOnUiThread(new Runnable() {
                 @Override
                     public void run() {
                     mGodotCameraView.setViewRect(new Rect(x, y, x + w, y + h));
@@ -94,7 +107,7 @@ public class FunababCameraPlugin extends Godot.SingletonBase {
     public void destroyView(int instanceId) {
 	    if (!sanityCheck(instanceId))
 	        return;
-	    mActivity.runOnUiThread(new Runnable() {
+	    mGodot.runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 _destroyView();
@@ -104,7 +117,7 @@ public class FunababCameraPlugin extends Godot.SingletonBase {
 
     private void _destroyView() {
 	    if (mGodotCameraView != null) {
-	        mRoot.removeView(mGodotCameraView);
+	        mLayout.removeView(mGodotCameraView);
 	        mInstanceId = null;
         }
     }
@@ -114,7 +127,7 @@ public class FunababCameraPlugin extends Godot.SingletonBase {
 	        return;
 
 	    if (mGodotCameraView != null)
-	        mActivity.runOnUiThread(new Runnable() {
+	        mGodot.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     mGodotCameraView.setVisibility(is_visible ? View.VISIBLE : View.INVISIBLE);
@@ -139,7 +152,7 @@ public class FunababCameraPlugin extends Godot.SingletonBase {
             return;
 
 	    if (mGodotCameraView != null)
-	        mActivity.runOnUiThread(new Runnable() {
+	        mGodot.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     mGodotCameraView.setViewCameraParameterValue(parameterKey, parameterValue);
@@ -152,7 +165,7 @@ public class FunababCameraPlugin extends Godot.SingletonBase {
 	        return;
 
 	    if (mGodotCameraView != null)
-	        mActivity.runOnUiThread(new Runnable() {
+	        mGodot.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     final  HashMap<String, Object> cameraFeatures = mGodotCameraView.setViewCameraFacing(isBackFacing);
@@ -169,7 +182,7 @@ public class FunababCameraPlugin extends Godot.SingletonBase {
 	        return;
 
 	    if (mGodotCameraView != null) {
-	        mActivity.runOnUiThread(new Runnable() {
+	        mGodot.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     mGodotCameraView.takePicture(new GodotCameraView.TakePictureCallback() {
@@ -224,7 +237,7 @@ public class FunababCameraPlugin extends Godot.SingletonBase {
 	        return;
 
 	    if (mGodotCameraView != null) {
-	        mActivity.runOnUiThread(new Runnable() {
+	        mGodot.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     mGodotCameraView.refreshPreview();
@@ -233,15 +246,23 @@ public class FunababCameraPlugin extends Godot.SingletonBase {
         }
     }
 	
-    static public Godot.SingletonBase initialize(Activity p_activity) {
-        return new FunababCameraPlugin(p_activity);
+	public FunababCameraPlugin(Godot godot) {
+		super(godot);
+		
+        mGodot = godot;
+        mContext = godot.getContext();
     }
+	
+	@NonNull
+	@Override
+	public String getPluginName() {
+		return "FunababCameraPlugin";
+	}
 
-    public FunababCameraPlugin(Activity p_activity) {
-        // Register class name and functions to bind.
-        registerClass("FunababCameraPlugin", new String[]
-            {
-                "initializeView",
+	@NonNull
+	@Override
+	public List<String> getPluginMethods() {
+		return Arrays.asList("initializeView",
                     "resizeView",
                     "destroyView",
                     "setViewVisibility",
@@ -250,27 +271,31 @@ public class FunababCameraPlugin extends Godot.SingletonBase {
                     "setViewParameterString",
                     "setPreviewCameraFacing",
                     "takePicture",
-                    "refreshCameraPreview"
-            });
-        mActivity = (Godot) p_activity;
-        mContext = p_activity.getApplicationContext();
+                    "refreshCameraPreview");
+	}
 
-    }
+	@NonNull
+	@Override
+	public Set<SignalInfo> getPluginSignals() {
+		Set<SignalInfo> signals = new ArraySet<>();
+
+		return signals;
+	}
 
     @Override
-    protected void onMainPause() {
+    public void onMainPause() {
 	    if (mGodotCameraView != null)
 	        mGodotCameraView.onActivityPause();
     }
 
     @Override
-    protected void onMainResume() {
+    public void onMainResume() {
         if (mGodotCameraView != null)
             mGodotCameraView.onActivityResume();
     }
 
     @Override
-    protected void onMainDestroy() {
+    public void onMainDestroy() {
         _destroyView();
 	}
 }

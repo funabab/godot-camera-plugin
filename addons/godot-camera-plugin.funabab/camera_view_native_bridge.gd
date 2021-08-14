@@ -111,13 +111,21 @@ static func initialize(node: Control)->CameraViewNativeBridge:
 	var instanse_id = node.get_instance_id();
 	if Engine.has_singleton(SINGLETON_NAME):
 		var plugin = Engine.get_singleton(SINGLETON_NAME);
-		var r : Rect2= node.get_global_rect();
+		var r : Rect2 = node.get_global_rect();
+		var s : Vector2 = Vector2.ONE;
+		
+		var parent = node.get_parent_control();
+		if parent:
+			var parent_r = parent.get_global_rect()
+			s = r.size / parent_r.size
+			r.size = parent_r.size
+			r.position -= r.size * 0.5
 
 		var cameraViewNativeBridge = CameraViewNativeBridge.new(plugin, node);
 		var result = plugin.initializeView(cameraViewNativeBridge.get_instance_id(),
 			node.get_camera_facing(), ParameterSerializer.serialize(node.__get_parameters__()),
 				int(r.position.x), int(r.position.y),
-					int(r.size.x), int(r.size.y), node.visible);
+					int(r.size.x), int(r.size.y), s.x, s.y, node.visible);
 
 		if result == true:
 			return cameraViewNativeBridge;

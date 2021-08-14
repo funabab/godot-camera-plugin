@@ -5,10 +5,31 @@ Godot Camera Plugin (For 3.2 and and above)
 
 A plugin for displaying native camera preview in @godotengine (currently Android only)
 
-## How to use:
-Make sure you are running godotengine version 3.2 or above and that your project have been setup for exporting with [custom Android template](https://docs.godotengine.org/en/latest/getting_started/workflow/export/android_custom_build.html).
+## How to build:
+You can follow these steps to build a new release of the plugin.
 
-Download and incude the plugin in your project, then enable it from the Plugin tab in your project settings.
+Prerequisites:
+- Android SDK (platform version 29)
+- the Godot Android library (`godot-lib.***.release.aar`) for your version of Godot from the [downloads page](https://godotengine.org/download).
+
+Plugin build steps:
+1. Clone this Git repository
+2. Put `godot-lib.***.release.aar` in `./android/godot-camera-plugin/libs`
+3. Run `gradlew build` in `./android`
+4. Output `.aar` files are located in `./android/godot-camera-plugin/build/outputs/aar`
+
+## How to use:
+Make sure you are running godotengine version 3.2 or above and that your project have been setup for exporting with [Android custom builds](https://docs.godotengine.org/en/stable/getting_started/workflow/export/android_custom_build.html#doc-android-custom-build).
+
+Editor add-on installation:
+1. Copy `./addons` folder into the project root
+2. Open `Project Settings > Plugins` and enable the camera plugin
+
+Android plugin installation:
+1. Copy `FunababCameraPlugin.gdap` to `android/plugins` in the project folder
+2. Copy `FunababCameraPlugin.***.aar` files to `android/plugins` in the project folder
+3. In the Android preset, enable `Plugins > Funabab Camera Plugin`
+4. In the Android preset, enable `Permissions > Camera`
 
 A custom godot control (**CameraView**) is provided which serve as a dummy view for communicating with the *real native camera preview*.
 

@@ -1,0 +1,5 @@
+[config]
+
+name="FunababCameraPlugin"
+binary_type="local"
+binary="FunababCameraPlugin.1.0.0.release.aar"

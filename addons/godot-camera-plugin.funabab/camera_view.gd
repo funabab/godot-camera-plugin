@@ -3,7 +3,6 @@ extends Control
 
 const CameraViewNativeBridge = preload("camera_view_native_bridge.gd").CameraViewNativeBridge;
 const ERROR_FATAL = 1;
-const ICON_CAMERA = preload("icon_camera.png");
 const COLOR_BG = Color.black;
 
 enum ERROR {
@@ -28,9 +27,11 @@ export(int, "Auto", "HDR", "Portrait", "Landscape", "Night", "Sunset") var scene
 export(int, "Auto", "Incandesent", "Flourescent", "Daylight", "Twilight", "Shade") var white_balanace := 0 setget set_white_balanace;
 export(int, "None", "Mono", "Negative", "Solarize", "Sepia") var color_effect := 0 setget set_color_effect;
 
-var cameraViewBridge setget __set_blank__, __get_blank__;
-var is_initialized : bool = false setget __set_blank__;
-var camera_permission_granted = false setget __set_blank__, __get_blank__;
+var cameraViewBridge
+var is_initialized : bool = false
+var camera_permission_granted = false
+
+var camera_icon = load("res://addons/godot-camera-plugin.funabab/icon_camera.png");
 
 signal picture_taken; # @parameters: error_code, image_texture, extra
 signal initialized;
@@ -70,17 +71,38 @@ func take_picture(minimum_number_of_face = 0):
 	cameraViewBridge.take_picture(minimum_number_of_face);
 	pass
 
+func _ready():
+	get_tree().connect("on_request_permissions_result", self, "_on_permission_result");
+	pass
+
+func _on_permission_result(permission, granted):
+	print("permission '%s' result: %s" % [permission, granted]);
+	if (permission.ends_with("CAMERA")):
+		camera_permission_granted = granted;
+		if !is_initialized && camera_permission_granted:
+			_initialize_camera();
+	pass
+
+func _initialize_camera():
+	print("initialize camera");
+	var CameraViewNativeBridge = preload("camera_view_native_bridge.gd");
+	cameraViewBridge = CameraViewNativeBridge.initialize(self);
+	is_initialized = true;
+	pass
+
 func _draw():
 	if !draw_camera_splash: return;
 
 	var rect = get_rect();
+	rect.position = Vector2.ZERO;
+	
 	var icon_size = rect.size.x * .3;
-	var size = Vector2(icon_size / ICON_CAMERA.get_width(),
-		icon_size / ICON_CAMERA.get_width());
+	var size = Vector2(icon_size / camera_icon.get_width(),
+		icon_size / camera_icon.get_width());
 	
 	draw_rect(rect, COLOR_BG);
-	draw_set_transform((rect.size - (size * ICON_CAMERA.get_width())) / 2, 0, size);
-	draw_texture(ICON_CAMERA, Vector2(0, 0),
+	draw_set_transform((rect.size - (size * camera_icon.get_width())) / 2, 0, size);
+	draw_texture(camera_icon, Vector2.ZERO,
 		Color.red if is_initialized else Color.white);
 	pass
 
@@ -92,24 +114,13 @@ func _notification(what):
 
 	if what == NOTIFICATION_ENTER_TREE:
 		if OS.get_name() == "Android":
+			print("requesting camera permission...");
 			camera_permission_granted = OS.request_permission("CAMERA");
-			if camera_permission_granted == false:
-				# Camera will proberly not start due to permission not granted
-	
-				# give users some time to grant permission
-				yield(get_tree().create_timer(2), "timeout");
-				prints("Godot: restart?");
-				get_tree().reload_current_scene(); # lets reload and try again
 	elif what == NOTIFICATION_RESIZED:
 		if !is_initialized && camera_permission_granted:
-#			yield(get_tree(), "idle_frame");
-			var CameraViewNativeBridge = preload("camera_view_native_bridge.gd");
-			cameraViewBridge = CameraViewNativeBridge.initialize(self);
-			is_initialized = true;
-		else:
-			if cameraViewBridge != null:
-				cameraViewBridge.resize_view(get_global_rect());
-
+			_initialize_camera();
+		elif cameraViewBridge != null:
+			cameraViewBridge.resize_view(get_global_rect());
 		update();
 	elif what == NOTIFICATION_VISIBILITY_CHANGED:
 		if cameraViewBridge != null:
@@ -134,14 +145,6 @@ func __get_parameters__()->Dictionary:
 		CameraViewNativeBridge.PARAMETER_WHITE_BALANCE: white_balanace,
 		CameraViewNativeBridge.PARAMETER_COLOR_EFFECT: color_effect
 	}
-	pass
-
-func __set_blank__(value):
-	# do nothing...
-	pass
-
-func __get_blank__():
-		# do nothing...
 	pass
 
 func set_camera_facing(value):
